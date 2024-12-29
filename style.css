@@ -64,6 +64,18 @@
   position-try-fallbacks: flip-block, flip-inline;
   margin-bottom: -2em;
 }
+.stwii--configRow {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 0.5em;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: 200ms;
+}
+.stwii--configRow:hover {
+  opacity: 1;
+}
 @keyframes stwii--badge-popin {
   0% {
     transform: scale(0);
