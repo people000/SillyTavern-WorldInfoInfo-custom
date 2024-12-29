@@ -24,7 +24,7 @@ const init = ()=>{
         trigger.classList.add('fa-solid', 'fa-fw', 'fa-book-atlas');
         trigger.title = 'Active WI';
         trigger.addEventListener('click', ()=>{
-            panel.style.display = panel.style.display == 'none' ? 'flex' : 'none';
+            panel.style.display = panel.style.display == '' ? 'flex' : '';
         });
         document.body.append(trigger);
     }
