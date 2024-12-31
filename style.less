@@ -8,7 +8,7 @@
     cursor: pointer;
     z-index: 3010;
     filter: drop-shadow(2px 4px 6px black);
-    display: none;
+    display: block;
     anchor-name: --stac--wiAnchor;
 
     &:not([data-stwii--badge-count="0"]) {
@@ -65,7 +65,80 @@
     position-area: top right;
     position-try-fallbacks: flip-block, flip-inline;
     margin-bottom: -2em;
+
+    &.stwii--isActive {
+        display: flex;
+    }
 }
+
+
+.stwii--world {
+    font-weight: bold;
+}
+.stwii--entry {
+    gap: 0.5em;
+    padding-left: 1em;
+    display: flex;
+    align-items: center;
+    opacity: 0.75;
+    cursor: help;
+    transition: 200ms;
+    &:hover {
+        opacity: 1;
+    }
+    &.stwii--isBroken {
+        background-color: rgb(255 0 0 / 0.5);
+    }
+}
+.stwii--note {
+    .stwii--strategy {
+        &::before {
+            opacity: 0.5;
+        }
+    }
+}
+.stwii--messages {
+    .stwii--strategy {
+        position: relative;
+        &::after {
+            content: attr(data-stwii--count);
+            font-family: var(--mainFontFamily);
+            position: absolute;
+            inset: 0;
+            text-shadow:
+                -1px -1px 1px black,
+                1px 1px 1px black,
+                -1px 1px 1px black,
+                1px -1px 1px black
+            ;
+            font-size: 0.75em;
+            padding-top: 0.25em;
+        }
+        &::before {
+            opacity: 0.5;
+        }
+    }
+    .stwii--title {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        font-size: 0.5em;
+        width: 0;
+        .stwii--first, .stwii--last {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .stwii--sep {
+            opacity: 0.75;
+            flex: 0 0 auto;
+            line-height: 0.125em;
+            padding-bottom: 0.6em;
+        }
+    }
+
+}
+
 
 .stwii--configRow {
     display: flex;
