@@ -369,6 +369,7 @@ const init = ()=>{
     console.debug = function(...args) {
         if (args[0] == '[WI] Found 0 world lore entries. Sorted by strategy') {
             panel.innerHTML = 'No active entries';
+            updateBadge([]);
         }
         return original_debug.bind(this)(...args);
     };
