@@ -1,10 +1,14 @@
 {
-    "display_name": "WorldInfo Info",
+    "display_name": "WorldInfoInfo",
     "loading_order": 100,
     "requires": [],
     "optional": [],
     "js": "index.js",
     "css": "style.css",
+    "files": [
+        "button.html",
+        "template.html"
+    ],
     "author": "LenAnderson",
     "version": "1.2.1",
     "homePage": "https://github.com/LenAnderson/SillyTavern-WorldInfoInfo"
