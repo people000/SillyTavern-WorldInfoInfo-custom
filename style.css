@@ -17,10 +17,6 @@
   background-color: var(--secondaryBg, var(--SmartThemeBlurTintColor));
 }
 
-.stwii--panel.stwii--isActive {
-  display: flex;
-}
-
 .stwii-config-panel-container {
   display: none;
 }
@@ -99,4 +95,108 @@
 }
 .stwii--configRow:hover {
   opacity: 1;
+}
+
+/* 아이콘 토글 체크박스 스타일 (공간 최적화) */
+.stwii--icon-toggle {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* 채팅창 옆 아이콘을 위한 스타일 */
+#stwii-chat-icon {
+  position: relative;
+  order: 5;
+  width: var(--bottomFormBlockSize);
+  height: var(--bottomFormBlockSize);
+  font-size: 1.2em;
+  opacity: 0.7;
+  transition: opacity 200ms;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#stwii-chat-icon:hover {
+  opacity: 1;
+}
+
+/* === 뱃지 숫자 표시를 위한 스타일 (3자리 숫자 맞춤) === */
+#stwii-chat-icon:not([data-stwii--badge-count="0"])::after {
+  content: attr(data-stwii--badge-count);
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  /* 폰트 크기를 살짝 줄여서 3자리 숫자가 들어갈 공간 확보 */
+  font-size: calc(0.6 * var(--mainFontSize));
+  font-weight: bold;
+  font-family: var(--mainFontFamily);
+  color: white;
+  background: black;
+  
+  /* 숫자를 원의 정중앙에 위치시키기 위한 Flexbox 설정 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 0.25em;
+  border-radius: 50%;
+  aspect-ratio: 1 / 1;
+  height: 1.2lh; /* 원의 크기를 미세하게 조절 */
+  min-width: 1.2lh;
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 200ms, transform 200ms;
+  box-sizing: border-box; /* 패딩이 크기에 영향을 주지 않도록 설정 */
+}
+
+
+/* 뱃지 애니메이션 클래스 */
+#stwii-chat-icon.stwii--badge-in::after {
+  animation: stwii--badge-popin 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+#stwii-chat-icon.stwii--badge-out::after {
+  animation: stwii--badge-popin 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) reverse;
+}
+#stwii-chat-icon.stwii--badge-bounce::after {
+  animation: stwii--badge-bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation-iteration-count: 2;
+}
+
+
+/* 뱃지 애니메이션 키프레임 */
+@keyframes stwii--badge-popin {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes stwii--badge-bounce {
+  0% {
+    transform: scale(1) translateY(0);
+  }
+  10% {
+    transform: scale(1.1, 0.9) translateY(0);
+  }
+  30% {
+    transform: scale(0.9, 1.1) translateY(-0.5em);
+  }
+  50% {
+    transform: scale(1.05, 0.95) translateY(0);
+  }
+  57% {
+    transform: scale(1) translateY(-0.125em);
+  }
+  64% {
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
 }

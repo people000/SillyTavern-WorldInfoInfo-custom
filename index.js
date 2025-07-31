@@ -32,29 +32,23 @@ eventSource.on(event_types.GENERATION_STARTED, (genType)=>generationType = genTy
 // 데이터 저장을 위한 변수들
 let currentEntryList = [];
 let currentChat = [];
+let badgeCount = -1;
 
 
 // 팝업을 여는 함수
 const openWorldInfoPanel = async () => {
     const template = $(await renderExtensionTemplateAsync(`third-party/${extensionName}`, 'template'));
     const panel = template.find('.stwii--panel');
-    const configPanel = template.find('.stwii-config-panel-container');
 
-    // 설정 패널 UI 생성
-    buildConfigPanel(configPanel, panel);
+    // 패널이 준비된 후, 그 아래에 아이콘 토글 옵션을 추가합니다.
+    addIconToggleOption(panel);
 
-    // 현재 저장된 데이터로 패널 내용 업데이트
+    // 현재 데이터로 패널 내용을 업데이트합니다.
     updatePanel(panel, currentEntryList, true);
 
     const popup = new Popup(template, POPUP_TYPE.TEXT, {
         title: 'Active WorldInfo',
         buttons: [
-            {
-                text: 'Config',
-                action: () => {
-                    configPanel.toggleClass('stwii--isActive');
-                },
-            },
             {
                 text: 'Close',
                 action: 'close',
@@ -84,74 +78,88 @@ const addToWandMenu = async () => {
     }
 };
 
-const buildConfigPanel = (configPanel, mainPanel) => {
-    configPanel.addClass('stwii--panel');
-    const rowGroup = document.createElement('label'); {
-        rowGroup.classList.add('stwii--configRow');
-        rowGroup.title = 'Group entries by World Info book';
-        const cb = document.createElement('input'); {
-            cb.type = 'checkbox';
-            cb.checked = extension_settings.worldInfoInfo?.group ?? true;
-            cb.addEventListener('click', ()=>{
-                if (!extension_settings.worldInfoInfo) {
-                    extension_settings.worldInfoInfo = {};
-                }
-                extension_settings.worldInfoInfo.group = cb.checked;
-                updatePanel(mainPanel, currentEntryList);
-                saveSettingsDebounced();
-            });
-            rowGroup.append(cb);
-        }
-        const lbl = document.createElement('div'); {
-            lbl.textContent = 'Group by book';
-            rowGroup.append(lbl);
-        }
-        configPanel.append(rowGroup);
+// 채팅창 옆에 아이콘을 추가하는 함수
+const addChatBarIcon = () => {
+    if ($('#stwii-chat-icon').length > 0) return;
+
+    const icon = document.createElement('div');
+    icon.id = 'stwii-chat-icon';
+    icon.classList.add('fa-solid', 'fa-book-atlas', 'interactable');
+    icon.title = 'Active WorldInfo';
+
+    icon.addEventListener('click', openWorldInfoPanel);
+
+    const leftSendForm = document.querySelector('#leftSendForm');
+    if (leftSendForm) {
+        leftSendForm.append(icon);
+    } else {
+        setTimeout(addChatBarIcon, 500);
     }
-    const orderRow = document.createElement('label'); {
-        orderRow.classList.add('stwii--configRow');
-        orderRow.title = 'Show in insertion depth / order instead of alphabetically';
-        const cb = document.createElement('input'); {
-            cb.type = 'checkbox';
-            cb.checked = extension_settings.worldInfoInfo?.order ?? true;
-            cb.addEventListener('click', ()=>{
-                if (!extension_settings.worldInfoInfo) {
-                    extension_settings.worldInfoInfo = {};
-                }
-                extension_settings.worldInfoInfo.order = cb.checked;
-                updatePanel(mainPanel, currentEntryList);
-                saveSettingsDebounced();
-            });
-            orderRow.append(cb);
+};
+
+const updateBadge = async (entryList) => {
+    badgeCount = entryList.length;
+
+    const icon = document.querySelector('#stwii-chat-icon');
+    if (!icon) return;
+
+    const currentCountOnIcon = Number(icon.getAttribute('data-stwii--badge-count')) || 0;
+    if (currentCountOnIcon !== badgeCount) {
+        if (badgeCount === 0) {
+            icon.classList.add('stwii--badge-out');
+            await delay(510);
+            icon.setAttribute('data-stwii--badge-count', badgeCount.toString());
+            icon.classList.remove('stwii--badge-out');
+        } else if (currentCountOnIcon === 0) {
+            icon.setAttribute('data-stwii--badge-count', badgeCount.toString());
+            icon.classList.add('stwii--badge-in');
+            await delay(510);
+            icon.classList.remove('stwii--badge-in');
+        } else {
+            icon.setAttribute('data-stwii--badge-count', badgeCount.toString());
+            icon.classList.add('stwii--badge-bounce');
+            await delay(1010);
+            icon.classList.remove('stwii--badge-bounce');
         }
-        const lbl = document.createElement('div'); {
-            lbl.textContent = 'Show in order';
-            orderRow.append(lbl);
-        }
-        configPanel.append(orderRow);
     }
-    const mesRow = document.createElement('label'); {
-        mesRow.classList.add('stwii--configRow');
-        mesRow.title = 'Indicate message history (only when ungrouped and shown in order)';
-        const cb = document.createElement('input'); {
-            cb.type = 'checkbox';
-            cb.checked = extension_settings.worldInfoInfo?.mes ?? true;
-            cb.addEventListener('click', ()=>{
-                if (!extension_settings.worldInfoInfo) {
-                    extension_settings.worldInfoInfo = {};
+};
+
+// 패널에 아이콘 표시/숨김 체크박스를 추가하는 함수
+const addIconToggleOption = (panel) => {
+    const iconRow = document.createElement('label');
+    iconRow.classList.add('stwii--configRow', 'stwii--icon-toggle');
+    iconRow.title = 'Toggle the visibility of the icon in the chat bar';
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = extension_settings.worldInfoInfo?.showIcon ?? true;
+    cb.addEventListener('click', () => {
+        if (!extension_settings.worldInfoInfo) {
+            extension_settings.worldInfoInfo = {};
+        }
+        extension_settings.worldInfoInfo.showIcon = cb.checked;
+        saveSettingsDebounced();
+
+        if (cb.checked) {
+            addChatBarIcon();
+            // 아이콘을 켠 직후, 저장된 숫자로 배지를 즉시 복원
+            setTimeout(() => {
+                const icon = document.querySelector('#stwii-chat-icon');
+                if (icon && badgeCount >= 0) { // 0도 표시해야 하므로 >=
+                    icon.setAttribute('data-stwii--badge-count', badgeCount.toString());
                 }
-                extension_settings.worldInfoInfo.mes = cb.checked;
-                updatePanel(mainPanel, currentEntryList);
-                saveSettingsDebounced();
-            });
-            mesRow.append(cb);
+            }, 10);
+        } else {
+            $('#stwii-chat-icon').remove();
         }
-        const lbl = document.createElement('div'); {
-            lbl.textContent = 'Show messages';
-            mesRow.append(lbl);
-        }
-        configPanel.append(mesRow);
-    }
+    });
+    iconRow.append(cb);
+
+    const lbl = document.createElement('div');
+    lbl.textContent = 'Show icon in chat bar';
+    iconRow.append(lbl);
+
+    panel.parent().append(iconRow);
 };
 
 
@@ -170,19 +178,21 @@ eventSource.on(event_types.WORLD_INFO_ACTIVATED, async(entryList)=>{
         )));
     }
     currentEntryList = [...entryList];
+    updateBadge(currentEntryList);
 });
 
 
 const updatePanel = (panel, entryList, newChat = false)=>{
-    const isGrouped = extension_settings.worldInfoInfo?.group ?? true;
-    const isOrdered = extension_settings.worldInfoInfo?.order ?? true;
-    const isMes = extension_settings.worldInfoInfo?.mes ?? true;
     panel.html('');
 
     if (entryList.length === 0) {
         panel.html('No active entries');
         return;
     }
+
+    const isGrouped = extension_settings.worldInfoInfo?.group ?? true;
+    const isOrdered = extension_settings.worldInfoInfo?.order ?? true;
+    const isMes = extension_settings.worldInfoInfo?.mes ?? true;
 
     let grouped;
     if (isGrouped) {
@@ -203,7 +213,6 @@ const updatePanel = (panel, entryList, newChat = false)=>{
             panel.append(w);
             entries.sort((a,b)=>{
                 if (isOrdered) {
-                    // order by strategy / depth / order
                     if (!depthPos.includes(a.position) && !depthPos.includes(b.position)) return a.position - b.position;
                     if (depthPos.includes(a.position) && !depthPos.includes(b.position)) return 1;
                     if (!depthPos.includes(a.position) && depthPos.includes(b.position)) return -1;
@@ -213,7 +222,6 @@ const updatePanel = (panel, entryList, newChat = false)=>{
                     if ((a.order ?? Number.MAX_SAFE_INTEGER) < (b.order ?? Number.MAX_SAFE_INTEGER)) return -1;
                     return (a.comment ?? a.key.join(', ')).toLowerCase().localeCompare((b.comment ?? b.key.join(', ')).toLowerCase());
                 } else {
-                    // order alphabetically
                     return (a.comment?.length ? a.comment : a.key.join(', '))
                         .toLowerCase()
                         .localeCompare(b.comment?.length ? b.comment : b.key.join(', '))
@@ -242,22 +250,12 @@ const updatePanel = (panel, entryList, newChat = false)=>{
                 for (let i = entries.length - 1; i >= -1; i--) {
                     if (i < 0 && currentDepth < 0) continue;
                     if (isDumped) continue;
-                    if ((i < 0 && currentDepth >= 0) || !depthPos.includes(entries[i].position)) {
-                        // anything not @D is considered as "before chat"
+                    if ((i < 0 && currentDepth >= 0) || (i >= 0 && !depthPos.includes(entries[i].position))) {
                         isDumped = true;
                         const depth = -1;
                         const mesList = currentChat.slice(depth + 1, currentDepth + 1);
                         const text = mesList
-                            .map(it=>it.mes)
-                            .map(it=>it
-                                .replace(/```.+```/gs, '')
-                                .replace(/<[^>]+?>/g, '')
-                                .trim()
-                                ,
-                            )
-                            .filter(it=>it.length)
-                            .join('\n')
-                        ;
+                            .map(it=>it.mes).map(it=>it.replace(/```.+```/gs, '').replace(/<[^>]+?>/g, '').trim(),).filter(it=>it.length).join('\n');
                         const sentences = [...segmenter.segment(text)].map(it=>it.segment.trim());
                         entries.splice(i + 1, 0, {
                             type: 'mes',
@@ -276,16 +274,7 @@ const updatePanel = (panel, entryList, newChat = false)=>{
                     if (depth == currentDepth) continue;
                     const mesList = currentChat.slice(depth + 1, currentDepth + 1);
                     const text = mesList
-                        .map(it=>it.mes)
-                        .map(it=>it
-                            .replace(/```.+```/gs, '')
-                            .replace(/<[^>]+?>/g, '')
-                            .trim()
-                            ,
-                        )
-                        .filter(it=>it.length)
-                        .join('\n')
-                    ;
+                        .map(it=>it.mes).map(it=>it.replace(/```.+```/gs, '').replace(/<[^>]+?>/g, '').trim(),).filter(it=>it.length).join('\n');
                     const sentences = [...segmenter.segment(text)].map(it=>it.segment.trim());
                     entries.splice(i + 1, 0, {
                         type: 'mes',
@@ -376,11 +365,12 @@ const updatePanel = (panel, entryList, newChat = false)=>{
     }
 };
 
-//! HACK: no event when no entries are activated, only a debug message
+//! HACK:
 const original_debug = console.debug;
 console.debug = function(...args) {
     if (args[0] == '[WI] Found 0 world lore entries. Sorted by strategy') {
         currentEntryList = [];
+        updateBadge([]);
     }
     return original_debug.bind(this)(...args);
 };
@@ -388,4 +378,8 @@ console.debug = function(...args) {
 // 확장 초기화
 jQuery(async () => {
     await addToWandMenu();
+
+    if (extension_settings.worldInfoInfo?.showIcon ?? true) {
+        addChatBarIcon();
+    }
 });
