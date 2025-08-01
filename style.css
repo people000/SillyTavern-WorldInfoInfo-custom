@@ -97,14 +97,12 @@
   opacity: 1;
 }
 
-/* 아이콘 토글 체크박스 스타일 (공간 최적화) */
 .stwii--icon-toggle {
   margin-top: 5px;
   padding-top: 5px;
   border-top: 1px solid var(--border-color);
 }
 
-/* 채팅창 옆 아이콘을 위한 스타일 */
 #stwii-chat-icon {
   position: relative;
   order: 5;
@@ -123,37 +121,30 @@
   opacity: 1;
 }
 
-/* === 뱃지 숫자 표시를 위한 스타일 (3자리 숫자 맞춤) === */
 #stwii-chat-icon:not([data-stwii--badge-count="0"])::after {
   content: attr(data-stwii--badge-count);
   position: absolute;
   bottom: 0;
   right: 0;
-  /* 폰트 크기를 살짝 줄여서 3자리 숫자가 들어갈 공간 확보 */
   font-size: calc(0.6 * var(--mainFontSize));
   font-weight: bold;
   font-family: var(--mainFontFamily);
   color: white;
   background: black;
-  
-  /* 숫자를 원의 정중앙에 위치시키기 위한 Flexbox 설정 */
   display: flex;
   justify-content: center;
   align-items: center;
-
   padding: 0.25em;
   border-radius: 50%;
   aspect-ratio: 1 / 1;
-  height: 1.2lh; /* 원의 크기를 미세하게 조절 */
+  height: 1.2lh;
   min-width: 1.2lh;
   text-align: center;
   pointer-events: none;
   transition: opacity 200ms, transform 200ms;
-  box-sizing: border-box; /* 패딩이 크기에 영향을 주지 않도록 설정 */
+  box-sizing: border-box;
 }
 
-
-/* 뱃지 애니메이션 클래스 */
 #stwii-chat-icon.stwii--badge-in::after {
   animation: stwii--badge-popin 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -166,37 +157,48 @@
 }
 
 
-/* 뱃지 애니메이션 키프레임 */
 @keyframes stwii--badge-popin {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 @keyframes stwii--badge-bounce {
-  0% {
-    transform: scale(1) translateY(0);
-  }
-  10% {
-    transform: scale(1.1, 0.9) translateY(0);
-  }
-  30% {
-    transform: scale(0.9, 1.1) translateY(-0.5em);
-  }
-  50% {
-    transform: scale(1.05, 0.95) translateY(0);
-  }
-  57% {
-    transform: scale(1) translateY(-0.125em);
-  }
-  64% {
-    transform: scale(1) translateY(0);
-  }
-  100% {
-    transform: scale(1) translateY(0);
-  }
+  0% { transform: scale(1) translateY(0); }
+  10% { transform: scale(1.1, 0.9) translateY(0); }
+  30% { transform: scale(0.9, 1.1) translateY(-0.5em); }
+  50% { transform: scale(1.05, 0.95) translateY(0); }
+  57% { transform: scale(1) translateY(-0.125em); }
+  64% { transform: scale(1) translateY(0); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+
+/* === 아이콘 클릭 시 뜨는 패널 스타일 (수정됨) === */
+.stwii--hover-panel {
+  position: absolute; /* JS로 위치를 제어하기 위해 absolute로 변경 */
+  display: none; /* 기본 숨김 */
+  z-index: 30000;
+  
+  /* 기존 스타일 유지 */
+  filter: drop-shadow(1px 1px 2px var(--black50a));
+  overflow: auto;
+  border-radius: 10px;
+  padding: 0.5em;
+  flex-direction: column;
+  font-size: small;
+  max-height: 50vh;
+  max-width: 400px;
+  background-color: var(--secondaryBg, var(--SmartThemeBlurTintColor));
+  
+  /* 애니메이션 */
+  transform-origin: bottom left;
+  animation: stwii-panel-popin 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.stwii--hover-panel.stwii--isActive {
+  display: flex;
+}
+
+@keyframes stwii-panel-popin {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
